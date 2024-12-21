@@ -59,3 +59,54 @@ mod state {
         match_index: [usize; NUMBER_OF_SERVERS],
     }
 }
+
+/// The server module contains the interface for the server RPC definitions given in the remaining
+/// boxes in figure 2 of the raft paper
+mod server {
+    /// Marker struct signifying that the server is currenlty in the Leader state signifying that
+    /// at some point in the past it received a majority of the votes from the other servers
+    ///
+    /// Servers in the Leader state must:
+    /// * Upon election: send initial empty AppendEntries RPCs (heartbeat) to each server; repeat during idle periods to prevent election timeouts
+    /// * If command received from client: append entry to local log, respond after entry applied to state machine
+    /// * If last log index ≥ nextIndex for a follower: send AppendEntries RPC with log entries starting at nextIndex
+    /// * If successful: update nextIndex and matchIndex for follower
+    /// * If AppendEntries fails because of log inconsistency: decrement nextIndex and retry
+    /// * If there exists an N such that N > commitIndex, a majority of matchIndex[i] ≥ N, and log[N].term == currentTerm: set commitIndex = N
+    struct Leader;
+
+    /// Marker struct signifying that the server is currenlty in the Candidate state signifying that
+    /// it has requested votes from other servers and is trying to setup a leader
+    ///
+    /// Servers in the Candidate state must:
+    /// * On conversion to candidate, start election:
+    ///     * Increment currentTerm
+    ///     * Vote for self
+    ///     * Reset election timer
+    ///     * Send RequestVote RPCs to all other servers
+    /// * If votes received from majority of servers: become leader
+    /// * If AppendEntries RPC received from new leader: convert to follower
+    /// * If election timeout elapses: start new election
+    struct Candidate;
+
+    /// Marker struct signifying that the server is currenlty in the Follower state which is the
+    /// state the server initialises itself to on startup
+    ///
+    /// Servers in the follower state must:
+    ///  * Respond to RPCs from candidates and leaders
+    ///  * If election timeout elapses without receiving AppendEntries RPC from current leader or granting vote to candidate: convert to candidate
+    struct Follower;
+
+    /// The server can be in one of three states:
+    ///  * [Follower]
+    ///  * [Candidate]
+    ///  * [Leader]
+    ///
+    ///  All servers irrelevant of the state they're in must:
+    ///   * If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
+    ///   * If RPC request or response contains term T > currentTerm: set currentTerm = T, convert to follower
+    struct Server<T>(T);
+
+    // TODO: Add in the RPC calls and the state to the server as well as the conditions for
+    // changing the servers state for each given object
+}
