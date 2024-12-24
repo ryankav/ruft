@@ -67,26 +67,26 @@ mod server {
     /// at some point in the past it received a majority of the votes from the other servers
     ///
     /// Servers in the Leader state must:
-    /// * Upon election: send initial empty AppendEntries RPCs (heartbeat) to each server; repeat during idle periods to prevent election timeouts
-    /// * If command received from client: append entry to local log, respond after entry applied to state machine
-    /// * If last log index ≥ nextIndex for a follower: send AppendEntries RPC with log entries starting at nextIndex
-    /// * If successful: update nextIndex and matchIndex for follower
-    /// * If AppendEntries fails because of log inconsistency: decrement nextIndex and retry
-    /// * If there exists an N such that N > commitIndex, a majority of matchIndex[i] ≥ N, and log[N].term == currentTerm: set commitIndex = N
+    ///  * Upon election: send initial empty AppendEntries RPCs (heartbeat) to each server; repeat during idle periods to prevent election timeouts
+    ///  * If command received from client: append entry to local log, respond after entry applied to state machine
+    ///  * If last log index ≥ nextIndex for a follower: send AppendEntries RPC with log entries starting at nextIndex
+    ///  * If successful: update nextIndex and matchIndex for follower
+    ///  * If AppendEntries fails because of log inconsistency: decrement nextIndex and retry
+    ///  * If there exists an N such that N > commitIndex, a majority of matchIndex[i] ≥ N, and log[N].term == currentTerm: set commitIndex = N
     struct Leader;
 
     /// Marker struct signifying that the server is currenlty in the Candidate state signifying that
     /// it has requested votes from other servers and is trying to setup a leader
     ///
     /// Servers in the Candidate state must:
-    /// * On conversion to candidate, start election:
-    ///     * Increment currentTerm
-    ///     * Vote for self
-    ///     * Reset election timer
-    ///     * Send RequestVote RPCs to all other servers
-    /// * If votes received from majority of servers: become leader
-    /// * If AppendEntries RPC received from new leader: convert to follower
-    /// * If election timeout elapses: start new election
+    ///  * On conversion to candidate, start election:
+    ///      * Increment currentTerm
+    ///      * Vote for self
+    ///      * Reset election timer
+    ///      * Send RequestVote RPCs to all other servers
+    ///  * If votes received from majority of servers: become leader
+    ///  * If AppendEntries RPC received from new leader: convert to follower
+    ///  * If election timeout elapses: start new election
     struct Candidate;
 
     /// Marker struct signifying that the server is currenlty in the Follower state which is the
