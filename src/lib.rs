@@ -16,19 +16,22 @@ struct ReplicatedState {
     z: u64,
 }
 
+mod types {
+    pub struct ServerId(pub usize);
+
+    pub struct Term(pub usize);
+
+    /// Another placeholder for the command
+    pub enum Command {}
+
+    /// Each entry contains command for state machine, and term when entry was received by leader (first index is 1)
+    pub struct LogEntry(pub Command, pub usize);
+}
+
 /// This module contains a first pass, sketch of the structs defined in the top left box which
 /// lists the states different servers have and how they're persisted.
 mod state {
-
-    /// A struct to represent the candidate id and is just meant to be a placeholder to match the
-    /// terminology in the paper
-    struct CandidateId(pub usize);
-
-    /// Another placeholder for the command
-    enum Command {}
-
-    /// Each entry contains command for state machine, and term when entry was received by leader (first index is 1)
-    struct LogEntry(pub Command, pub usize);
+    use super::types::{LogEntry, ServerId};
 
     /// This state is on all servers and needs to be persisted so will eventually need to be
     /// changed as this, clearly isn't persisted, due to it just being a sketch currently.
@@ -36,7 +39,7 @@ mod state {
         /// latest term server has seen (initialized to 0 on first boot, increases monotonically)
         current_term: usize,
         /// candidateId that received vote in current term (or null if none)
-        voted_for: Option<CandidateId>,
+        voted_for: Option<ServerId>,
         /// The list of log entries
         log: Vec<LogEntry>,
     }
@@ -63,6 +66,7 @@ mod state {
 /// The server module contains the interface for the server RPC definitions given in the remaining
 /// boxes in figure 2 of the raft paper
 mod server {
+    use super::types::{LogEntry, ServerId, Term};
     /// Marker struct signifying that the server is currenlty in the Leader state signifying that
     /// at some point in the past it received a majority of the votes from the other servers
     ///
@@ -109,4 +113,40 @@ mod server {
 
     // TODO: Add in the RPC calls and the state to the server as well as the conditions for
     // changing the servers state for each given object
+
+    impl<T> Server<T> {
+        /// Invoked by leader to replicate log entries; also used as heartbeat
+        ///
+        /// Implementation details:
+        /// 1. Reply false if term < currentTerm
+        /// 2. Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
+        /// 3. If an existing entry conflicts with a new one (same index but different terms), delete the existing entry and all that follow it
+        /// 4. Append any new entries not already in the log
+        /// 5. If leaderCommit > commitIndex, set commitIndex = min(leaderCommit, index of last new entry)
+        fn append_entires(
+            leaders_term: Term,
+            leader_id: ServerId,
+            prev_log_index: usize,
+            entries: Vec<LogEntry>,
+            leader_commit: usize,
+        ) -> Result<Term, ()> {
+            // TODO: work out if retrun type is always a term even when unsuccesful
+            todo!()
+        }
+
+        /// Invoked by candidates to gather votes
+        ///
+        /// Implementation details:
+        /// 1. Reply false if term < currentTerm
+        /// 2. If votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote
+        fn rquest_vote(
+            candidates_term: Term,
+            candidate_id: ServerId,
+            last_log_index: usize,
+            last_log_term: usize,
+        ) -> Result<Term, ()> {
+            // TODO: work out if retrun type is always a term even when unsuccesful
+            todo!()
+        }
+    }
 }
